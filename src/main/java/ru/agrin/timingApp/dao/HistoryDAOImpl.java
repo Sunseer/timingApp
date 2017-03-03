@@ -3,7 +3,6 @@ package ru.agrin.timingApp.dao;
 import ru.agrin.timingApp.model.Employee;
 import ru.agrin.timingApp.model.History;
 
-import java.io.FileInputStream;
 import java.sql.*;
 import java.sql.Date;
 import java.util.*;
@@ -11,20 +10,18 @@ import java.util.*;
 /** Обработка SQL запросов по истории сотрудника.
  * Created by Grin on 20.02.2017.
  */
-public class HistoryDAOImpl implements HistoryDAO{
+public class HistoryDAOImpl implements HistoryDAO {
+
+    private final String SQL_FIND_ALL_PRESENCE_BY_DATE = "SELECT * from employees e INNER JOIN history h ON e.id = h.employee_id WHERE h.startJob >= ? AND DATE(h.startJob) <= ?";
+    private final String SQL_FIND_BY_EMPLOYEE_ID_AND_DATE ="SELECT * from employees e INNER JOIN history h ON e.id = h.employee_id WHERE employee_id = ? AND startJob >= ? AND DATE(startJob) <= ?";
+    private final String SQL_INSERT ="INSERT INTO history (employee_id, startJob) VALUES(?, ?)";
+    private final String SQL_UPDATE ="UPDATE history SET endJob=? WHERE employee_id=? AND endJob IS NULL";
+
     private DataSource dataSource;
     private EmployeeDAOImpl employeeDAOImpl;
 
     public HistoryDAOImpl() throws Exception {
-
         dataSource = new DataSource();
-        Properties props = new Properties();
-        props.load(new FileInputStream("demo.properties"));
-
-        dataSource.setLogin(props.getProperty("user"));
-        dataSource.setPassword(props.getProperty("password"));
-        dataSource.setUrl(props.getProperty("dburl"));
-
         employeeDAOImpl = new EmployeeDAOImpl();
     }
 
@@ -32,13 +29,15 @@ public class HistoryDAOImpl implements HistoryDAO{
     public List<History> findAllPresenceEmployeeByDate(Date startDate, Date endDate) {
         List<History> list = new ArrayList<>();
         Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet rs = null;
 
         try {
             connection = dataSource.getConnection();
-            PreparedStatement statement = connection.prepareStatement(SQL_FIND_ALL_PRESENCE_BY_DATE);
+            statement = connection.prepareStatement(SQL_FIND_ALL_PRESENCE_BY_DATE);
             statement.setDate(1, startDate);
             statement.setDate(2, endDate);
-            ResultSet rs = statement.executeQuery();
+            rs = statement.executeQuery();
 
             while (rs.next()) {
                 Employee tempEmployee = employeeDAOImpl.convertRowToEmployee(rs);
@@ -51,7 +50,7 @@ public class HistoryDAOImpl implements HistoryDAO{
             e.printStackTrace();
         }
         finally {
-            dataSource.closeConnection(connection);
+            dataSource.close(connection, statement, rs);
         }
         return list;
     }
@@ -60,14 +59,16 @@ public class HistoryDAOImpl implements HistoryDAO{
     public List<History> findByEmployeeIdAndDate(int employeeId, Date startDate, Date endDate) {
         List<History> list = new ArrayList<>();
         Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet rs = null;
 
         try {
             connection = dataSource.getConnection();
-            PreparedStatement statement = connection.prepareStatement(SQL_FIND_BY_EMPLOYEE_ID_AND_DATE);
+            statement = connection.prepareStatement(SQL_FIND_BY_EMPLOYEE_ID_AND_DATE);
             statement.setInt(1, employeeId);
             statement.setDate(2, startDate);
             statement.setDate(3, endDate);
-            ResultSet rs = statement.executeQuery();
+            rs = statement.executeQuery();
 
             while (rs.next()) {
                 Employee tempEmployee = employeeDAOImpl.convertRowToEmployee(rs);
@@ -80,46 +81,51 @@ public class HistoryDAOImpl implements HistoryDAO{
             e.printStackTrace();
         }
         finally {
-            dataSource.closeConnection(connection);
+            dataSource.close(connection, statement, rs);
         }
         return list;
     }
 
     @Override
-    public void insert(History history) {
+    public void startWork(History history) {
         Connection connection = null;
+        PreparedStatement statement = null;
+
         try {
             connection = dataSource.getConnection();
-            PreparedStatement statement = connection.prepareStatement(SQL_INSERT);
+            statement = connection.prepareStatement(SQL_INSERT);
             statement.setInt(1, history.getEmployeeId());
             statement.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
             statement.executeUpdate();
-        } catch (SQLException e) {
+        }
+        catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            dataSource.closeConnection(connection);
+        }
+        finally {
+            dataSource.close(connection, statement);
         }
     }
 
     @Override
-    public void update(History history) {
+    public void endWork(History history) {
         Connection connection = null;
+        PreparedStatement statement = null;
+
         try {
             connection = dataSource.getConnection();
-            PreparedStatement statement = connection.prepareStatement(SQL_UPDATE);
+            statement = connection.prepareStatement(SQL_UPDATE);
             statement.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
             statement.setInt(2, history.getEmployeeId());
-            //statement.setString(3,"IS NULL");
             statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            dataSource.closeConnection(connection);
+            dataSource.close(connection, statement);
         }
     }
 
     /**
-     *  Преоразование ряда SQL таблицы в историю посещений сотрудника
+     *  Преобразование ряда SQL таблицы в историю посещений сотрудника
      * @param rs
      * @return посещение сотрудника
      * @throws SQLException

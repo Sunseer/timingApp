@@ -112,12 +112,16 @@ public class TimeManagerApp extends JFrame {
                     int employeeId = Integer.valueOf(idTextField.getText());
                     History history = new History();
                     history.setEmployeeId(employeeId);
-                    historyDAOImpl.insert(history);
+                    historyDAOImpl.startWork(history);
+
+                    JOptionPane.showMessageDialog(TimeManagerApp.this, "Данные добавлены успешно",
+                            "Сообщение", JOptionPane.INFORMATION_MESSAGE);
                 }
                 catch (Exception exc) {
                     JOptionPane.showMessageDialog(TimeManagerApp.this, "Ошибка: такого № " +
-                            "сотрудника не существует, введите корректный №" , "Ошибка", JOptionPane.ERROR_MESSAGE);
+                            "сотрудника не существует, введите корректный № " + exc, "Ошибка", JOptionPane.ERROR_MESSAGE);
                 }
+
             }
         });
         panel.add(btnStart);
@@ -132,11 +136,14 @@ public class TimeManagerApp extends JFrame {
                     int employeeId = Integer.valueOf(idTextField.getText());
                     History history = new History();
                     history.setEmployeeId(employeeId);
-                    historyDAOImpl.update(history);
+                    historyDAOImpl.endWork(history);
+
+                    JOptionPane.showMessageDialog(TimeManagerApp.this, "Данные добавлены успешно",
+                            "Сообщение", JOptionPane.INFORMATION_MESSAGE);
                 }
                 catch (Exception exc) {
                     JOptionPane.showMessageDialog(TimeManagerApp.this, "Ошибка: такого № " +
-                            "сотрудника не существует, введите корректный №" + exc , "Ошибка", JOptionPane.ERROR_MESSAGE);
+                            "сотрудника не существует, введите корректный №" + exc, "Ошибка", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -170,7 +177,7 @@ public class TimeManagerApp extends JFrame {
 
                 } catch (Exception exc) {
                     JOptionPane.showMessageDialog(TimeManagerApp.this, "Ошибка: Введите " +
-                                    "начальную и конечную дату в формате YYYY-MM-DD",
+                                    "начальную и конечную дату в формате YYYY-MM-DD " + exc,
                             "Ошибка", JOptionPane.ERROR_MESSAGE);
                 }
             }
@@ -195,7 +202,7 @@ public class TimeManagerApp extends JFrame {
 
                 } catch (Exception exc) {
                     JOptionPane.showMessageDialog(TimeManagerApp.this, "Ошибка: Введите " +
-                                    "начальную и конечную дату в формате YYYY-MM-DD",
+                                    "начальную и конечную дату в формате YYYY-MM-DD " + exc,
                             "Ошибка", JOptionPane.ERROR_MESSAGE);
                 }
 
@@ -232,7 +239,7 @@ public class TimeManagerApp extends JFrame {
 
                 } catch (Exception exc) {
                     JOptionPane.showMessageDialog(TimeManagerApp.this, "Ошибка: Введите " +
-                                    "начальную и конечную дату в формате YYYY-MM-DD. Укажите правильный № сотрудника",
+                                    "начальную и конечную дату в формате YYYY-MM-DD. Укажите правильный № сотрудника " + exc,
                             "Ошибка", JOptionPane.ERROR_MESSAGE);
                 }
             }
@@ -346,7 +353,7 @@ public class TimeManagerApp extends JFrame {
 
                 } catch (Exception exc) {
                     JOptionPane.showMessageDialog(TimeManagerApp.this,
-                            "Ошибка удаления: " + exc.getMessage(), "Ошибка",
+                            "Ошибка удаления: " + exc, "Ошибка",
                             JOptionPane.ERROR_MESSAGE);
                 }
             }
